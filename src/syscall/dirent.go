@@ -74,7 +74,7 @@ func ParseDirent(buf []byte, max int, names []string) (consumed int, count int, 
 		}
 		// See src/os/dir_unix.go for the reason why this condition is
 		// excluded on wasip1 and linux.
-		if ino == 0 && runtime.GOOS != "linux" && runtime.GOOS != "wasip1" { // File absent in directory.
+		if ino == 0 && runtime.GOOS != "linux" && runtime.GOOS != "wasix" && runtime.GOOS != "wasip1" { // File absent in directory.
 			continue
 		}
 		const namoff = uint64(unsafe.Offsetof(Dirent{}.Name))
