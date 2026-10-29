@@ -18,6 +18,9 @@ TEXT runtime·rt0_go(SB), NOSPLIT|NOFRAME|TOPFRAME, $0
 #ifdef GOOS_js
 	CALLNORESUME runtime·args(SB)
 #endif
+#ifdef GOOS_wasix
+	CALLNORESUME runtime·args(SB)
+#endif
 	CALLNORESUME runtime·osinit(SB)
 	CALLNORESUME runtime·schedinit(SB)
 	MOVD $runtime·mainPC(SB), 0(SP)
