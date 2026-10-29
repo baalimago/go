@@ -93,6 +93,7 @@ var okgoos = []string{
 	"ios",
 	"js",
 	"wasip1",
+	"wasix",
 	"linux",
 	"android",
 	"solaris",
@@ -1075,6 +1076,7 @@ var unixOS = map[string]bool{
 	"netbsd":    true,
 	"openbsd":   true,
 	"solaris":   true,
+	"wasix":     true,
 }
 
 // matchtag reports whether the tag matches this build.
@@ -1083,7 +1085,7 @@ func matchtag(tag string) bool {
 	case "gc", "cmd_go_bootstrap", "go1.1":
 		return true
 	case "linux":
-		return goos == "linux" || goos == "android"
+		return goos == "linux" || goos == "android" || goos == "wasix"
 	case "solaris":
 		return goos == "solaris" || goos == "illumos"
 	case "darwin":
@@ -1108,7 +1110,7 @@ func shouldbuild(file, pkg string) bool {
 	name := filepath.Base(file)
 	excluded := func(list []string, ok string) bool {
 		for _, x := range list {
-			if x == ok || (ok == "android" && x == "linux") || (ok == "illumos" && x == "solaris") || (ok == "ios" && x == "darwin") {
+			if x == ok || (ok == "android" && x == "linux") || (ok == "wasix" && x == "linux") || (ok == "illumos" && x == "solaris") || (ok == "ios" && x == "darwin") {
 				continue
 			}
 			i := strings.Index(name, x)
@@ -1797,6 +1799,7 @@ var cgoEnabled = map[string]bool{
 	"ios/amd64":       true,
 	"js/wasm":         false,
 	"wasip1/wasm":     false,
+	"wasix/wasm":      false,
 	"netbsd/386":      true,
 	"netbsd/amd64":    true,
 	"netbsd/arm":      true,

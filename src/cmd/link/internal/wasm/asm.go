@@ -69,6 +69,8 @@ var wasmFuncTypes = map[string]*wasmFuncType{
 	"_rt0_wasm_js":            {Params: []byte{}},                                         //
 	"_rt0_wasm_wasip1":        {Params: []byte{}},                                         //
 	"_rt0_wasm_wasip1_lib":    {Params: []byte{}},                                         //
+	"_rt0_wasm_wasix":         {Params: []byte{}},                                         //
+	"_rt0_wasm_wasix_lib":     {Params: []byte{}},                                         //
 	"wasm_export__start":      {},                                                         //
 	"wasm_export_run":         {Params: []byte{I32, I32}},                                 // argc, argv
 	"wasm_export_resume":      {Params: []byte{}},                                         //
@@ -417,15 +419,17 @@ func writeExportSec(ctxt *ld.Link, ldr *loader.Loader, lenHostImports int) {
 	sizeOffset := writeSecHeader(ctxt, sectionExport)
 
 	switch buildcfg.GOOS {
-	case "wasip1":
+	case "wasip1", "wasix":
+		// wasix is a wasixv2 guest, whose kernel enters _start and
+		// takes the exported memory, as WASI's does.
 		writeUleb128(ctxt.Out, uint64(2+len(ldr.WasmExports))) // number of exports
 		var entry, entryExpName string
 		switch ctxt.BuildMode {
 		case ld.BuildModeExe:
-			entry = "_rt0_wasm_wasip1"
+			entry = "_rt0_wasm_" + buildcfg.GOOS
 			entryExpName = "_start"
 		case ld.BuildModeCShared:
-			entry = "_rt0_wasm_wasip1_lib"
+			entry = "_rt0_wasm_" + buildcfg.GOOS + "_lib"
 			entryExpName = "_initialize"
 		}
 		s := ldr.Lookup(entry, 0)

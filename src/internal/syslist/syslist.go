@@ -31,6 +31,7 @@ var KnownOS = map[string]bool{
 	"plan9":     true,
 	"solaris":   true,
 	"wasip1":    true,
+	"wasix":     true,
 	"windows":   true,
 	"zos":       true,
 }
@@ -51,6 +52,7 @@ var UnixOS = map[string]bool{
 	"netbsd":    true,
 	"openbsd":   true,
 	"solaris":   true,
+	"wasix":     true,
 }
 
 // KnownArch is the list of past, present, and future known GOARCH values.

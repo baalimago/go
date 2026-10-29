@@ -73,7 +73,7 @@ func (h *HeadType) Set(s string) error {
 		*h = Hplan9
 	case "illumos", "solaris":
 		*h = Hsolaris
-	case "wasip1":
+	case "wasip1", "wasix":
 		*h = Hwasip1
 	case "windows":
 		*h = Hwindows

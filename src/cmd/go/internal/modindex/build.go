@@ -684,7 +684,7 @@ func (ctxt *Context) matchTag(name string, allTags map[string]bool) bool {
 	if name == ctxt.GOOS || name == ctxt.GOARCH || name == ctxt.Compiler {
 		return true
 	}
-	if ctxt.GOOS == "android" && name == "linux" {
+	if (ctxt.GOOS == "android" || ctxt.GOOS == "wasix") && name == "linux" {
 		return true
 	}
 	if ctxt.GOOS == "illumos" && name == "solaris" {
