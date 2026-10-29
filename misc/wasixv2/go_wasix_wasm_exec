@@ -1,0 +1,3 @@
+#!/bin/bash
+# Runs a wasix/wasm test binary on wasmer's wasixv2 kernel with the cwd mapped.
+exec "${WASMER:-wasmer}" run -q --volume "$PWD:$PWD" --volume /tmp:/tmp --volume /usr/share/zoneinfo:/usr/share/zoneinfo --cwd "$PWD" --env HOME=/tmp --env GOROOT="$(go env GOROOT)" "$1" -- "${@:2}"
