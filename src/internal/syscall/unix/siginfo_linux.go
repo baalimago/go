@@ -4,13 +4,7 @@
 
 package unix
 
-import (
-	"internal/goos"
-	"syscall"
-)
-
-// 0 for 32-bit kernels, 1 for 64-bit ones. The wasix/wasm port is LP64 on an ILP32 kernel.
-const is64bit = ^uint(0) >> 63 &^ goos.IsWasix
+import "syscall"
 
 // SiginfoChild is a struct filled in by Linux waitid syscall.
 // In C, siginfo_t contains a union with multiple members;
