@@ -114,12 +114,15 @@ Measured with wasmer `feat/wasixv2` (908423d), cranelift, on linux/amd64.
 
 ## Gaps
 
-- **os/exec.** There is no fork: wasm cannot return twice, and wasixv2's
-  `vfork` resumes the parent with a `longjmp` on wasm exceptions, which Go's
-  wasm backend does not emit. `forkExec` needs a single-call spawn import
-  (`posix_spawn` with file actions) in the ABI; `thread_spawn` without
-  `CLONE_THREAD` is close, but its child runs on a new instance of the module
-  through an export Go does not have.
+- **os/exec** runs, through wasixv2's `spawn` extension: `posix_spawn` in one
+  call, with the child's file actions, `Dir` and `execve` taken by the kernel
+  inside it (`syscall/exec_wasix_wasm.go`). There is no fork, since wasm cannot
+  return twice and wasixv2's `vfork` resumes the parent with a `longjmp` on
+  wasm exceptions, which Go's wasm backend does not emit; so `SysProcAttr`
+  fields that need code of the child's own (`Credential`, `Setctty`,
+  `Foreground`, `Ptrace`, `Pdeathsig`, clone and namespace flags) fail with
+  `ENOSYS`, and `PidFD` is always -1. `Wait` blocks on a pidfd in the
+  netpoller, so other goroutines run meanwhile.
 - **Signals.** Delivery needs a `__stack_pointer` export, an exported
   `__indirect_function_table` and a `(i32, i32, i32) -> ()` trampoline. Go
   could export its SP global as `__stack_pointer`, use `sigaltstack` so the
