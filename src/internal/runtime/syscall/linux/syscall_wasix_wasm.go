@@ -25,12 +25,19 @@ const (
 	_EFAULT = 14
 
 	_UIO_MAXIOV = 1024
+
+	// wait4 is asm-generic, but riscv32 leaves it out for waitid.
+	_SYS_wait4  = 260
 	_MSG_CTRUNC = 0x8
 )
 
 //go:nosplit
 func Syscall6(num, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2, errno uintptr) {
-	r1, errno = dispatch(num, a1, a2, a3, a4, a5, a6)
+	if num == _SYS_wait4 {
+		r1, errno = compat_wait4(a1, a2, a3, a4)
+	} else {
+		r1, errno = dispatch(num, a1, a2, a3, a4, a5, a6)
+	}
 	if errno != 0 {
 		return ^uintptr(0), 0, errno
 	}
@@ -307,4 +314,77 @@ func compat_recvmsg(fd, msg, flags uintptr) (uintptr, uintptr) {
 func RtSigaction32(sig, act, oact uintptr) uintptr {
 	_, e := ret32(wasixv2_rt_sigaction(int32(sig), act, oact, 8))
 	return e
+}
+
+const (
+	_P_ALL  = 0
+	_P_PID  = 1
+	_P_PGID = 2
+
+	_WEXITED = 4
+
+	_CLD_EXITED    = 1
+	_CLD_KILLED    = 2
+	_CLD_DUMPED    = 3
+	_CLD_TRAPPED   = 4
+	_CLD_STOPPED   = 5
+	_CLD_CONTINUED = 6
+
+	_RUSAGE_SIZE = 144
+)
+
+// siginfo32 is the head of the kernel's 128-byte siginfo_t for SIGCHLD on an
+// ILP32 guest.
+type siginfo32 struct {
+	signo  int32
+	errno  int32
+	code   int32
+	pid    int32
+	uid    uint32
+	status int32
+	_      [26]int32
+}
+
+var waitScratch siginfo32
+
+// compat_wait4 is wait4 on waitid, as musl builds it for riscv32. The child's
+// resource usage is not reported: rusage is zeroed.
+//
+//go:nosplit
+func compat_wait4(pid, wstatus, options, rusage uintptr) (uintptr, uintptr) {
+	id := int32(pid)
+	idtype := int32(_P_PID)
+	switch {
+	case id < -1:
+		idtype, id = _P_PGID, -id
+	case id == -1:
+		idtype = _P_ALL
+	case id == 0:
+		idtype = _P_PGID
+	}
+	waitScratch = siginfo32{}
+	if r := wasixv2_waitid(idtype, id, uintptr(unsafe.Pointer(&waitScratch)), uint32(options)|_WEXITED, 0); r < 0 {
+		return ret32(r)
+	}
+	info := &waitScratch
+	if info.pid != 0 && wstatus != 0 {
+		var sw int32
+		switch info.code {
+		case _CLD_CONTINUED:
+			sw = 0xffff
+		case _CLD_DUMPED:
+			sw = info.status&0x7f | 0x80
+		case _CLD_EXITED:
+			sw = (info.status & 0xff) << 8
+		case _CLD_KILLED:
+			sw = info.status & 0x7f
+		case _CLD_STOPPED, _CLD_TRAPPED:
+			sw = info.status<<8 + 0x7f
+		}
+		*(*int32)(unsafe.Pointer(wstatus)) = sw
+	}
+	if rusage != 0 {
+		clear((*[_RUSAGE_SIZE]byte)(unsafe.Pointer(rusage))[:])
+	}
+	return uintptr(info.pid), 0
 }
