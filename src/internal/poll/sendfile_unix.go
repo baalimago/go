@@ -132,7 +132,7 @@ func sendFile(dstFD *FD, src int, offset *int64, size int64) (written int64, err
 
 func sendFileChunk(dst, src int, offset *int64, size int, written int64) (n int, err error) {
 	switch runtime.GOOS {
-	case "linux", "android":
+	case "linux", "android", "wasix":
 		// The offset is always nil on Linux.
 		n, err = syscall.Sendfile(dst, src, offset, size)
 	case "solaris", "illumos":

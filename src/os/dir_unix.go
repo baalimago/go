@@ -113,7 +113,7 @@ func (f *File) readdir(n int, mode readdirMode) (names []string, dirents []DirEn
 		// of inodes. Therefore, we cannot make the assumption that it is safe
 		// to skip entries with zero inodes.
 		// Some Linux filesystems (old XFS, FUSE) can return valid files with zero inodes.
-		if ino == 0 && runtime.GOOS != "linux" && runtime.GOOS != "wasip1" {
+		if ino == 0 && runtime.GOOS != "linux" && runtime.GOOS != "wasix" && runtime.GOOS != "wasip1" {
 			continue
 		}
 		const namoff = uint64(unsafe.Offsetof(syscall.Dirent{}.Name))
