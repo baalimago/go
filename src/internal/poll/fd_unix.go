@@ -157,6 +157,9 @@ func (fd *FD) Read(p []byte) (int, error) {
 	if fd.IsStream && len(p) > maxRW {
 		p = p[:maxRW]
 	}
+	if !fd.pd.pollable() {
+		waitReadable(fd.Sysfd)
+	}
 	for {
 		n, err := ignoringEINTRIO(syscall.Read, fd.Sysfd, p)
 		if err != nil {
