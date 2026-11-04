@@ -965,6 +965,9 @@ func ExtThreadSpawn(flags_ uint32, start_arg_ uint32, parent_tid_ uintptr, tls_ 
 //go:wasmimport wasixv2 spawn
 func ExtSpawn(pid_ uintptr, path_ uintptr, actions_ uintptr, actions_len_ uint32, attr_ uintptr, argv_ uintptr, envp_ uintptr) int32
 
+//go:wasmimport wasixv2 http_open
+func ExtHttpOpen(request_ uintptr, request_len_ uint32) int32
+
 //go:wasmimport wasixv2 signal_callback_register
 func ExtSignalCallbackRegister(callback_ uint32) int32
 
